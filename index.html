@@ -92,6 +92,11 @@
       --code-text: #d6deea;
       --shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 8px 24px rgba(16, 24, 40, .06);
       --accent-2: #2f7dd1;     /* gradient partner for motion accents */
+      --tone-owner: #15803d;  /* scope badges */
+      --tone-co: #1d4ed8;
+      --tone-main: #6d28d9;
+      --mono-ico: none;        /* black brand icons stay black on light */
+      --lift-ico: none;        /* dark-blue icons get brightened in dark mode */
       --glow: rgba(47, 125, 209, .10);
       --blob-1: rgba(47, 125, 209, .18);
       --blob-2: rgba(30, 58, 95, .14);
@@ -119,6 +124,11 @@
         --brand-text: #f1f4f8;
         --code-bg: #0a0f15;
         --accent-2: #6fd3c9;
+        --tone-owner: #4ade80;
+        --tone-co: #7ab8ff;
+        --tone-main: #c4b5fd;
+        --mono-ico: invert(1) brightness(1.1);
+        --lift-ico: brightness(2.1) saturate(1.2);
         --glow: rgba(141, 180, 230, .10);
         --blob-1: rgba(111, 211, 201, .12);
         --blob-2: rgba(141, 180, 230, .14);
@@ -144,6 +154,11 @@
       --brand-text: #f1f4f8;
       --code-bg: #0a0f15;
       --accent-2: #6fd3c9;
+      --tone-owner: #4ade80;
+      --tone-co: #7ab8ff;
+      --tone-main: #c4b5fd;
+      --mono-ico: invert(1) brightness(1.1);
+      --lift-ico: brightness(2.1) saturate(1.2);
       --glow: rgba(141, 180, 230, .10);
       --blob-1: rgba(111, 211, 201, .12);
       --blob-2: rgba(141, 180, 230, .14);
@@ -362,7 +377,19 @@
       border-radius: var(--radius);
       background: var(--surface);
     }
-    .stat-value { color: var(--ink); font-size: 1.7rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.2; }
+    .stat-value {
+      justify-self: start;
+      width: fit-content;
+      font-size: 1.9rem;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      line-height: 1.2;
+      background: linear-gradient(90deg, var(--accent-text), var(--accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+    }
     .stat-label { margin-top: 6px; color: var(--muted); font-size: 14.5px; line-height: 1.5; }
 
     /* ---------- Sections ---------- */
@@ -447,10 +474,25 @@
       line-height: 1.7;
       white-space: nowrap;
     }
-    .scope-owner { background: var(--accent); color: var(--accent-contrast); }
-    .scope-main { background: var(--accent-soft); color: var(--accent-text); box-shadow: inset 0 0 0 1px var(--accent-text); }
-    .scope-co { background: var(--accent-soft); color: var(--accent-text); }
-    .scope-contrib { background: var(--surface-2); color: var(--muted); }
+    .scope-owner { --tone: var(--tone-owner); }
+    .scope-co { --tone: var(--tone-co); }
+    .scope-main { --tone: var(--tone-main); }
+    .scope-owner, .scope-co, .scope-main {
+      background: color-mix(in srgb, var(--tone) 13%, transparent);
+      color: var(--tone);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone) 38%, transparent);
+    }
+    .scope-owner::before, .scope-co::before, .scope-main::before {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      margin-right: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      vertical-align: 1px;
+    }
+    .scope-contrib { background: var(--surface-2); color: var(--muted); box-shadow: inset 0 0 0 1px var(--line); }
 
     .job .list, .job .chips { margin-top: 18px; }
 
@@ -857,6 +899,11 @@
     .project:hover, .job:hover, .education:hover { border-color: color-mix(in srgb, var(--accent-2) 35%, var(--line)); }
     .chip { transition: background-color .2s ease, color .2s ease, border-color .2s ease, transform .2s ease; }
     .chip:hover { transform: translateY(-1px); border-color: var(--accent-2); color: var(--ink); }
+    .chip.has-ico { display: inline-flex; align-items: center; gap: 6px; }
+    .chip-ico { flex: none; width: 14px; height: 14px; transition: transform .3s var(--ease-out); }
+    .chip-ico.mono { filter: var(--mono-ico); }
+    .chip-ico.lift { filter: var(--lift-ico); }
+    .chip:hover .chip-ico { transform: scale(1.2) rotate(-8deg); }
     .stat-value { font-variant-numeric: tabular-nums; }
 
     .btn { position: relative; overflow: hidden; transition: background-color .15s ease, border-color .15s ease, color .15s ease, transform .2s var(--ease-out), box-shadow .2s ease; }
@@ -1935,6 +1982,36 @@
           });
         });
       }
+
+      // Brand icons on tech chips
+      // "!" = black logo, inverted in dark mode; "~" = dark-blue logo, brightened in dark mode
+      var TECH = {
+        "node.js": "nodejs", "typescript": "typescript", "javascript": "javascript",
+        "express": "express!", "express.js": "express!", "react": "react", "react native": "react",
+        "next.js": "nextjs!", "angularjs": "angularjs", "tailwind css": "tailwindcss",
+        "mongodb": "mongodb", "mongodb (mongoose)": "mongodb", "postgresql": "postgresql",
+        "mysql": "mysql~", "redis": "redis", "sequelize": "sequelize", "socket.io": "socketio!",
+        "payload cms": "payloadcms!", "keycloak": "keycloak!", "keycloak sso": "keycloak!",
+        "stripe": "stripe", "vietqr": "vietqr.png", "odoo": "odoo~", "odoo api": "odoo~",
+        "django": "django!", "python (django)": "python", "java": "java", "java (spring boot)": "java",
+        "spring boot": "spring", "docker": "docker", "nginx": "nginx", "github actions": "githubactions",
+        "pm2": "pm2!", "sonarcloud": "sonarcloud", "jest": "jest", "vitest": "vitest", "playwright": "playwright"
+      };
+      document.querySelectorAll(".chip").forEach(function (chip) {
+        var v = TECH[chip.textContent.trim().toLowerCase()];
+        if (!v) return;
+        var mark = v.charAt(v.length - 1);
+        var tone = mark === "!" ? " mono" : mark === "~" ? " lift" : "";
+        var ico = document.createElement("img");
+        var file = tone ? v.slice(0, -1) : v;
+        ico.src = "images/tech/" + file + (file.indexOf(".") < 0 ? ".svg" : "");
+        ico.alt = "";
+        ico.width = ico.height = 14;
+        ico.decoding = "async";
+        ico.className = "chip-ico" + tone;
+        chip.insertBefore(ico, chip.firstChild);
+        chip.classList.add("has-ico");
+      });
 
       // Photo frames: 3D tilt on hover + click to open the lightbox
       var lb = document.getElementById("lightbox");

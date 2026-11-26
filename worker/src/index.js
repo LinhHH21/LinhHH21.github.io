@@ -125,15 +125,40 @@ async function hashIp(req, env) {
 }
 
 async function notify(env, text) {
-  if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) return;
-  if (!(await allow(env, "alert", "all", ALERTS_PER_DAY))) return;
+  // Trim: values piped in from a terminal often carry a trailing newline
+  const token = String(env.TELEGRAM_BOT_TOKEN || "").trim();
+  const chatId = String(env.TELEGRAM_CHAT_ID || "").trim();
+  if (!token || !chatId) {
+    console.error("telegram skipped, empty secret:", [!token && "TELEGRAM_BOT_TOKEN", !chatId && "TELEGRAM_CHAT_ID"].filter(Boolean).join(", "));
+    return;
+  }
+  if (!/^\d+:[A-Za-z0-9_-]{30,}$/.test(token)) {
+    // Never log the token itself, only its shape
+    console.error("telegram token looks malformed", JSON.stringify({
+      length: token.length,
+      hasColon: token.includes(":"),
+      startsWithDigits: /^\d+:/.test(token),
+      hasSpaces: /\s/.test(token),
+      hasQuotes: /["']/.test(token),
+    }));
+  }
+  if (!(await allow(env, "alert", "all", ALERTS_PER_DAY))) {
+    console.error("telegram skipped: daily alert limit reached");
+    return;
+  }
   const api = env.TELEGRAM_API || "https://api.telegram.org";
-  const res = await fetch(`${api}/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+  const res = await fetch(`${api}/bot${token}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: env.TELEGRAM_CHAT_ID, text, disable_web_page_preview: true }),
+    body: JSON.stringify({ chat_id: chatId, text, disable_web_page_preview: true }),
   });
-  if (!res.ok) console.error("telegram", res.status, await res.text());
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.ok) {
+    console.error("telegram failed", res.status, JSON.stringify(data).slice(0, 300));
+  } else {
+    const chat = (data.result && data.result.chat) || {};
+    console.log("telegram sent", chat.type, chat.username || chat.first_name || chat.title || "");
+  }
 }
 
 function clean(value, max) {

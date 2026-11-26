@@ -520,6 +520,68 @@
     .aside-text { color: var(--ink); font-size: 15px; }
     .project-links { display: flex; flex-wrap: wrap; gap: 10px; }
 
+    /* ---------- Like ---------- */
+    .like-zone { padding: 0 0 72px; }
+    .like-card { display: flex; flex-direction: column; gap: 18px; }
+    .like-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+    .like-title { color: var(--ink); font-size: 1.25rem; letter-spacing: -.01em; }
+    .like-sub { margin-top: 4px; color: var(--muted); font-size: 15px; }
+    .like-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      height: 48px;
+      padding: 0 20px 0 16px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface-2);
+      color: var(--ink);
+      font: 600 15px/1 var(--font);
+      cursor: pointer;
+      transition: border-color .2s ease, background-color .2s ease, transform .2s var(--ease-out), box-shadow .3s ease;
+    }
+    .like-btn:hover { transform: translateY(-2px); border-color: #f43f5e; box-shadow: 0 10px 24px -12px rgba(244, 63, 94, .6); }
+    .like-btn:active { transform: scale(.96); }
+    .like-btn:disabled { cursor: default; }
+    .like-heart { width: 22px; height: 22px; fill: none; stroke: #f43f5e; stroke-width: 2; stroke-linejoin: round; transition: fill .2s ease, transform .3s var(--ease-out); }
+    .like-btn:hover .like-heart { transform: scale(1.12); }
+    .like-btn[aria-pressed="true"] { border-color: color-mix(in srgb, #f43f5e 50%, var(--line)); background: color-mix(in srgb, #f43f5e 12%, var(--surface)); }
+    .like-btn[aria-pressed="true"] .like-heart { fill: #f43f5e; }
+    .like-btn.pop .like-heart { animation: heart-pop .6s var(--ease-out); }
+    @keyframes heart-pop { 0% { transform: scale(1); } 30% { transform: scale(1.5); } 60% { transform: scale(.9); } 100% { transform: scale(1); } }
+    .like-count { min-width: 1.2em; padding-left: 10px; border-left: 1px solid var(--line); color: var(--muted); font-variant-numeric: tabular-nums; }
+    .like-burst {
+      position: absolute;
+      left: 27px;
+      top: 50%;
+      width: 6px;
+      height: 6px;
+      margin: -3px;
+      border-radius: 50%;
+      background: var(--c);
+      pointer-events: none;
+      animation: burst .7s var(--ease-out) forwards;
+    }
+    @keyframes burst { from { transform: translate(0, 0) scale(1); opacity: 1; } to { transform: translate(var(--x), var(--y)) scale(.3); opacity: 0; } }
+    .like-note { padding-top: 18px; border-top: 1px solid var(--line); animation: lb-in .4s var(--ease-out); }
+    .like-note-title { color: var(--ink); font-weight: 600; }
+    .like-note-title span { color: var(--muted); font-weight: 400; }
+    .like-fields { display: grid; grid-template-columns: 1fr 1.6fr auto; gap: 10px; margin-top: 12px; }
+    .like-input {
+      height: 40px;
+      min-width: 0;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface-2);
+      color: var(--ink);
+      font: 400 15px var(--font);
+    }
+    .like-input:focus { outline: 2px solid var(--accent-2); outline-offset: 1px; }
+    .like-privacy { margin-top: 8px; color: var(--muted); font-size: 13px; }
+    .like-done { color: var(--ink); font-weight: 500; }
+
     /* ---------- Team name ---------- */
     .team-name {
       display: inline-block;
@@ -1114,6 +1176,9 @@
       .hero-photo { max-width: 360px; }
       .facts div { grid-template-columns: 6.5em 1fr; }
       .gallery { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .like-zone { padding-bottom: 48px; }
+      .like-fields { grid-template-columns: 1fr; }
+      .like-btn { width: 100%; justify-content: center; }
       .hobby-head { gap: 14px; }
       .team-logo { width: 80px; }
       .project-photos { gap: 10px; }
@@ -1651,6 +1716,35 @@
       </div>
     </section>
 
+    <!-- ===== LIKE ===== -->
+    <section class="like-zone" id="like" hidden>
+      <div class="container">
+        <div class="card like-card">
+          <div class="like-row">
+            <div>
+              <h2 class="like-title">Enjoyed my portfolio?</h2>
+              <p class="like-sub">Tap the heart to let me know.</p>
+            </div>
+            <button class="like-btn" id="likeBtn" type="button" aria-pressed="false">
+              <svg class="like-heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.7s-7.6-4.6-9.4-9.3C1.4 8.2 3.4 4.6 7 4.6c2 0 3.4 1.1 5 3 1.6-1.9 3-3 5-3 3.6 0 5.6 3.6 4.4 6.8-1.8 4.7-9.4 9.3-9.4 9.3z"/></svg>
+              <span class="like-label" id="likeLabel">Like</span>
+              <span class="like-count" id="likeCount" aria-label="likes">·</span>
+            </button>
+          </div>
+          <form class="like-note" id="likeNote" hidden>
+            <p class="like-note-title">Thanks! Want to say hi? <span>(optional)</span></p>
+            <div class="like-fields">
+              <input class="like-input" name="name" maxlength="60" autocomplete="name" placeholder="Your name or company" aria-label="Your name or company">
+              <input class="like-input" name="message" maxlength="500" placeholder="A short message" aria-label="A short message">
+              <button class="btn btn-primary btn-sm" type="submit">Send</button>
+            </div>
+            <p class="like-privacy">Only sent to me, never shown on the page.</p>
+          </form>
+          <p class="like-done" id="likeDone" role="status" hidden></p>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <footer class="site-footer">
@@ -1979,6 +2073,110 @@
             navigator.clipboard.writeText(btn.getAttribute("data-copy")).then(function () {
               showToast("Email copied to clipboard");
             }, function () { showToast("Couldn't copy – please copy it manually"); });
+          });
+        });
+      }
+
+      // Like button: likes are counted by a Cloudflare Worker (worker/) that pings me on Telegram.
+      // The section stays hidden until LIKE_API is set and reachable.
+      var LIKE_API = "https://portfolio-likes.hoanghieulinh362.workers.dev";
+      var likeZone = document.getElementById("like");
+      if (LIKE_API && likeZone && window.fetch && window.crypto && crypto.getRandomValues) {
+        var likeBtn = document.getElementById("likeBtn");
+        var likeLabel = document.getElementById("likeLabel");
+        var likeCount = document.getElementById("likeCount");
+        var likeNote = document.getElementById("likeNote");
+        var likeDone = document.getElementById("likeDone");
+        var count = 0;
+
+        var store = function (key, value) {
+          try {
+            if (value === undefined) return localStorage.getItem(key);
+            localStorage.setItem(key, value);
+          } catch (e) { return null; }
+        };
+        var uuid = function () {
+          if (crypto.randomUUID) return crypto.randomUUID();
+          var h = Array.prototype.map.call(crypto.getRandomValues(new Uint8Array(16)), function (b) { return (b + 256).toString(16).slice(1); }).join("");
+          return h.slice(0, 8) + "-" + h.slice(8, 12) + "-" + h.slice(12, 16) + "-" + h.slice(16, 20) + "-" + h.slice(20);
+        };
+        var vid = store("pf-vid");
+        if (!vid) { vid = uuid(); store("pf-vid", vid); }
+
+        var api = function (path, body) {
+          return fetch(LIKE_API + path, body ? {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+          } : undefined).then(function (res) {
+            return res.json().then(function (data) { if (!res.ok) throw data; return data; });
+          });
+        };
+        var showCount = function (n) { count = n; likeCount.textContent = String(n); };
+        var setLiked = function (on) {
+          likeBtn.setAttribute("aria-pressed", on ? "true" : "false");
+          likeBtn.disabled = on;
+          likeLabel.textContent = on ? "Liked" : "Like";
+        };
+        var say = function (text) { likeDone.textContent = text; likeDone.hidden = false; };
+        var burst = function () {
+          if (reduceMotion) return;
+          var colors = ["#f43f5e", "#fb923c", "#facc15", "#6fd3c9", "#8db4e6"];
+          for (var i = 0; i < 10; i++) {
+            var dot = document.createElement("span");
+            var angle = (Math.PI * 2 * i) / 10;
+            var dist = 26 + Math.random() * 14;
+            dot.className = "like-burst";
+            dot.style.setProperty("--x", (Math.cos(angle) * dist).toFixed(1) + "px");
+            dot.style.setProperty("--y", (Math.sin(angle) * dist).toFixed(1) + "px");
+            dot.style.setProperty("--c", colors[i % colors.length]);
+            likeBtn.appendChild(dot);
+            setTimeout(function (d) { d.remove(); }, 750, dot);
+          }
+        };
+
+        if (store("pf-liked")) setLiked(true);
+        api("/likes").then(function (data) {
+          showCount(data.count);
+          likeZone.hidden = false;
+        }).catch(function () { /* API down: keep the section hidden */ });
+
+        likeBtn.addEventListener("click", function () {
+          if (likeBtn.getAttribute("aria-pressed") === "true") return;
+          setLiked(true);
+          showCount(count + 1);
+          likeBtn.classList.remove("pop"); void likeBtn.offsetWidth; likeBtn.classList.add("pop");
+          burst();
+          api("/like", { vid: vid, ref: document.referrer }).then(function (data) {
+            showCount(data.count);
+            store("pf-liked", "1");
+            if (!store("pf-noted")) {
+              likeNote.hidden = false;
+              likeNote.elements.name.focus({ preventScroll: true });
+            }
+          }).catch(function (err) {
+            setLiked(false);
+            showCount(Math.max(0, count - 1));
+            say(err && err.error === "rate_limited"
+              ? "Too many likes from this network today – thank you anyway!"
+              : "Couldn't send your like right now. Please try again later.");
+          });
+        });
+
+        likeNote.addEventListener("submit", function (e) {
+          e.preventDefault();
+          var name = likeNote.elements.name.value.trim();
+          var message = likeNote.elements.message.value.trim();
+          if (!name && !message) { likeNote.elements.name.focus(); return; }
+          var send = likeNote.querySelector("button");
+          send.disabled = true;
+          api("/note", { vid: vid, name: name, message: message }).then(function () {
+            store("pf-noted", "1");
+            likeNote.hidden = true;
+            say("Thanks, I got your message! 🙌");
+          }).catch(function () {
+            send.disabled = false;
+            say("Couldn't send your message right now. Please try again later.");
           });
         });
       }
